@@ -34,7 +34,9 @@
 
 <div class="home-page">
 
-        <%@ include file="header.jsp" %>
+		<% session.setAttribute("currentLocation", "profile"); %>
+		
+        <%@ include file="header.jsp" %>	
 
         <div class="container">
             <div class="row" style="margin-top:30px;">

@@ -13,6 +13,11 @@ public class UserBean {
 		this.password = password;
 		this.email = email;
 	}
+	
+	public UserBean(String username, String email) {
+		this.username = username;
+		this.email = email;
+	}
 
 	public String getUsername() {
 		return username;

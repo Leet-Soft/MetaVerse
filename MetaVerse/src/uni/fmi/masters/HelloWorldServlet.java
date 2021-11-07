@@ -1,6 +1,7 @@
 package uni.fmi.masters;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -10,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.json.JSONArray;
+
 import uni.fmi.masters.beans.UserBean;
 
 /**
@@ -18,21 +21,26 @@ import uni.fmi.masters.beans.UserBean;
 //@WebServlet("/HelloWorldServlet")
 public class HelloWorldServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	ArrayList<UserBean> friends = new ArrayList<>();
+	
        
     /**
      * @see HttpServlet#HttpServlet()
      */
     public HelloWorldServlet() {
         super();
-        // TODO Auto-generated constructor stub
+        friends.add(new UserBean("Georgi", "goshohubaveca@abv.bg"));
+        friends.add(new UserBean("Mariika", "mimiskronata@abv.bg"));
+        friends.add(new UserBean("Ivancho", "ivankartofa@abv.bg"));
+        friends.add(new UserBean("Ivelina", "velkavelikata@abv.bg"));
     }
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		doPost(request, response);
 	}
 
 	/**
@@ -49,11 +57,52 @@ public class HelloWorldServlet extends HttpServlet {
 			
 			case "register":
 				register(request, response);
-				break;		
+				break;	
+				
+			case "friends":
+				friends(request, response);
+				break;
+				
+			case "search":
+				search(request, response);
+				break;
 			
 			default:
 				response.getWriter().append("Unknown action!");
 		}
+		
+	}
+
+	private void search(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		
+		String phrase = request.getParameter("phrase");
+		
+		ArrayList<UserBean> results = new ArrayList<>();
+				
+		for(UserBean user : friends) {
+			if(user.getUsername().toLowerCase().contains(phrase.toLowerCase())
+					||
+				user.getEmail().toLowerCase().contains(phrase.toLowerCase())) {
+				results.add(user);
+			}
+		}
+		
+		JSONArray array = new JSONArray();
+		array.put(results);
+		
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		response.getWriter().write(array.toString());		
+	}
+
+	private void friends(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+		
+		request.setAttribute("friends", friends);
+		
+		//response.sendRedirect("friends.jsp");//Редирект потребителя бива пренасочен към нова страница и в url-a пише новата страница
+		
+		RequestDispatcher dispatcher = request.getRequestDispatcher("friends.jsp");//прехвърляме потребителят към друга страница без той да знае къде се намира
+		dispatcher.forward(request, response);
 		
 	}
 

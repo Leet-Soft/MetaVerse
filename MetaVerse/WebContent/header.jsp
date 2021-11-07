@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <header>
             <div class="container">
                 <nav class="navbar navbar-default">
@@ -27,25 +28,54 @@
                         <!-- Collect the nav links, forms, and other content for toggling -->
                         <div class="collapse navbar-collapse" id="navbar-collapse">
                             <ul class="nav navbar-nav navbar-right">
-                                <li class="active">
+                            
+                            	<c:if test='${ currentLocation.equals("home") }'>
+                                	<li class="active">
+                                </c:if>
+                                <c:if test='${ !currentLocation.equals("home") }'>
+                                	<li>
+                               	</c:if>
                                     <a href="home.jsp">
                                         <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
                                         <span class="nav-label">Начало</span>
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="friends.jsp">
+                                <c:if test="${ currentLocation.equals('friends') }">
+                                	<li class="active">
+                                </c:if>
+                                <c:if test="${ !currentLocation.equals('friends') }">
+                                	<li>
+                                </c:if>
+                                    <a href="HelloWorldServlet?action=friends">
                                         <i class="fa fa-users" aria-hidden="true"></i>
                                         <span class="nav-label">Приятели</span>
                                     </a>
                                 </li>
-                                <li>
+                                                     
+                     			<c:choose>
+                                	<c:when test="${currentLocation.equals('inbox') }">
+                                		<li class="active">
+                                	</c:when>
+                                	<c:otherwise>
+                                		<li>  
+                                	</c:otherwise>
+                               	</c:choose>                          
                                     <a href="inbox.jsp">
                                         <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
                                         <span class="nav-label">Известия</span>
                                     </a>
                                 </li>
-                                <li>
+     
+     							
+                               	<li 
+                               		<% if (session.getAttribute("currentLocation") != null && 
+                               		session.getAttribute("currentLocation").equals("profile")) { %>
+                               		
+                               			class="active"                              	
+                               		
+                               		<% } %>
+                               	>
+          
                                     <a href="profile.jsp">
                                         <i class="fa fa-cogs" aria-hidden="true"></i>
                                         <span class="nav-label">Профил</span>
