@@ -1,6 +1,13 @@
 package uni.fmi.masters.beans;
 
 public class UserBean {
+//			  CREATE TABLE USER(
+//			   ID IDENTITY PRIMARY KEY,
+//			   USERNAME VARCHAR(255) NOT NULL UNIQUE,
+//			   PASSWORD VARCHAR(32) NOT NULL,
+//			   EMAIL VARCHAR(255) NOT NULL UNIQUE,
+//			   AVATAR_LOCATION VARCHAR(255) DEFAULT 'no_image.jpg');
+	
 	private String username;
 	private String password;
 	private String email;

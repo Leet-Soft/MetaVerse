@@ -1,6 +1,13 @@
 package uni.fmi.masters;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.servlet.RequestDispatcher;
@@ -129,30 +136,149 @@ public class HelloWorldServlet extends HttpServlet {
 			
 			UserBean user = new UserBean(username, password, email);
 			
-			HttpSession session = request.getSession();
-			session.setAttribute("user", user);
+			if(registerUser(user)) {
+				HttpSession session = request.getSession();
+				session.setAttribute("user", user);
+				
+				try {
+					response.sendRedirect("profile.jsp");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}else {
+				
+			}			
 			
-			try {
-				response.sendRedirect("profile.jsp");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 		}		
 		
+	}
+
+	private boolean registerUser(UserBean user) {
+		//отваряне на конекция
+		Connection con = null;
+		
+		try {
+			con = getConnection();		
+			
+			//работа с базата
+			
+			StringBuilder sb = new StringBuilder();
+			
+			sb.append("INSERT INTO USER ");
+			sb.append("(USERNAME, PASSWORD, EMAIL) ");
+			sb.append("VALUES (?, ?, ?)");
+			
+	//		String query = "INSERT INTO USER " 
+	//							+ "(USERNAME, PASSWORD, EMAIL)"
+	//							+ "VALUES (?, ?, ?)";
+				
+			PreparedStatement pst = con.prepareStatement(sb.toString());
+			pst.setString(1, user.getUsername());
+			pst.setString(2, hashMe(user.getPassword()));
+			pst.setString(3, user.getEmail());
+			
+			if(pst.executeUpdate() > 0) {
+				return true;
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			//затваряне на конекция
+			
+			try {
+				if(con != null)
+					con.close();
+			} catch (SQLException e) {				
+				e.printStackTrace();
+			}			
+		}		
+		
+		return false;		
+	}
+
+	private String hashMe(String password) {
+		
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			
+			md.update(password.getBytes());
+			
+			byte[] arr = md.digest();
+			
+			StringBuilder hash = new StringBuilder();
+			
+			for(int i = 0; i < arr.length; i++) {
+				hash.append((char)arr[i]);
+			}
+			
+			return hash.toString();
+			
+		} catch (NoSuchAlgorithmException e) {			
+			e.printStackTrace();
+		}		
+				
+		return null;
+	}
+
+	private Connection getConnection() {
+		
+		try {
+			Class.forName("org.h2.Driver");
+			
+			return DriverManager.getConnection("jdbc:h2:~/MetaVerseDB", "sa", "");
+			
+		} catch (ClassNotFoundException | SQLException e) {			
+			e.printStackTrace();
+		}
+		
+		return null;		
 	}
 
 	private void login(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
 		
-		if(username.equalsIgnoreCase("gancho") && password.equals("AsD")) {
+		if(loginUser(username, password)) {
 			response.sendRedirect("home.jsp");
 		}else {
-			RequestDispatcher dispatcher = request.getRequestDispatcher("error.jsp");
-			
+			request.setAttribute("error", "Login not successfull");
+			RequestDispatcher dispatcher = request.getRequestDispatcher("error.jsp");			
 			dispatcher.forward(request, response);
 		}
 		
+	}
+
+	private boolean loginUser(String username, String password) {
+		
+		Connection con = null;
+		
+		try {
+			con = getConnection();
+			String query = "SELECT * from USER WHERE username = ? AND password = ?";
+			
+			PreparedStatement pst = con.prepareStatement(query);
+			pst.setString(1, username);
+			pst.setString(2, hashMe(password));
+			
+			ResultSet rs = pst.executeQuery();
+			
+			if(rs.first()) {
+				return true;
+			}			
+			
+		}catch(SQLException e) {
+			System.out.println(e.getMessage());
+		}finally {
+				try {
+					if(con != null)				
+						con.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+		}
+		
+		return false;
 	}
 
 }
