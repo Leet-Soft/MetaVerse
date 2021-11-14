@@ -1,5 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+    
+    <%@ page import="uni.fmi.masters.entities.UserEntity" %>
+    <%@ page import="uni.fmi.masters.entities.CommentEntity" %>
+    <%@ page import="java.util.List" %>
+    <%@ page import="java.util.ArrayList" %>
+    
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,7 +102,33 @@
                             <h3 class="panel-title">Твоите отбелязвания</h3>
                         </div>
 
-                        <ul class="list-group" style="min-height:241px;" id="comments-list">                                         
+                        <ul class="list-group" style="min-height:241px;" id="comments-list">    
+                        
+                        <%
+                        	UserEntity user = (UserEntity) request.getSession().getAttribute("user");
+                        
+                        	for(CommentEntity comment : user.getComments()) {
+                        %>
+                                   
+                          <li class="list-group-item">
+						    <div class="row">
+						        <div class="col-sm-2 col-xs-3">
+						            <img src="<%= comment.getIcon() %>" class="thumbnail img-responsive">
+						        </div>
+						        <div class="col-sm-7 col-xs-6">
+						            <span class="label label-success"><span class="current-temp"><%= comment.getTemp() %></span> ℃</span>
+						            <h4><%= comment.getCity() %></h4>
+						            <p><%= comment.getComment() %></p>
+						        </div>
+						        <div class="col-sm-3 col-xs-3">
+						            <button type="button" class="btn btn-danger pull-right remove-post"><span class="glyphicon glyphicon-remove"></span><span class="hidden-xs"> Изтрий</span></button>
+						        </div>
+						    </div>
+						</li>      
+                                   
+                        <%
+                        	}
+                        %>                          
         
                         </ul>
                     </div>
@@ -130,9 +162,25 @@
     $(document).ready(function(){
         
         var apiKey = "4ddc620cf659bfe28db6d4012c9fc208";
-        var city = "Plovdiv";
-
-
+        var city = "Plovdiv";       
+        
+        function sendToBackend(data, city){
+        	$.ajax({
+        		method: "POST",
+        		url: "HelloWorldServlet?action=addComment" +
+        				"&city=" + city + "&temp=" + data.main.temp +
+        				"&comment=" + $('#comment').val() +
+        				"&icon=assets/img/icons/thunderstorm.png"  //TODO: Направете метод който да връща пътя към иконата        				
+        				,
+     				success : function (response) {
+						if(response == "true"){
+							postComment(data);
+						}else{
+							alert("Неуспешно добавяне на коментар!");
+						}
+					}});
+        }
+        
         function doApiRequest(city, type){
 
             $.ajax({
@@ -141,15 +189,14 @@
                 "&appid=" + apiKey + "&units=metric",
                 dataType: "json"
             }).done(function(data){
-
-                switch(type){
+                switch(type){                
+	               case "comment":
+	               	sendToBackend(data, city);
+	               break;
+	               
                     case "main":
                         displayWeatherInformation(data);
-                    break;
-
-                    case "comment":
-                        postComment(data);
-                    break;
+                    break;                 
 
                     case "select":
                         changeTempOnSelect(data);
@@ -189,8 +236,6 @@
                 iconToChange = miniMe.find('img');
 
                 setWeatherIcon(data.weather[0].id.toString(), iconToChange);
-
-
 
                 $('#comments-list').prepend(miniMe);
 

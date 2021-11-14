@@ -20,7 +20,9 @@ import javax.servlet.http.HttpSession;
 
 import org.json.JSONArray;
 
+import uni.fmi.masters.entities.CommentEntity;
 import uni.fmi.masters.entities.UserEntity;
+import uni.fmi.masters.repo.JPACommentRepository;
 import uni.fmi.masters.repo.JPAUserRepository;
 
 /**
@@ -74,11 +76,39 @@ public class HelloWorldServlet extends HttpServlet {
 			case "search":
 				search(request, response);
 				break;
+				
+			case "addComment":
+				addComment(request, response);
+				break;
 			
 			default:
 				response.getWriter().append("Unknown action!");
 		}
 		
+	}
+
+	private void addComment(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String city = request.getParameter("city");
+		String comment = request.getParameter("comment");
+		double temp = Double.parseDouble(request.getParameter("temp"));
+		String icon = request.getParameter("icon");
+		
+		UserEntity user = (UserEntity)request.getSession().getAttribute("user");
+		
+		CommentEntity commentEntity = new CommentEntity();
+		commentEntity.setCity(city);
+		commentEntity.setComment(comment);
+		commentEntity.setTemp(temp);
+		commentEntity.setUser(user);
+		commentEntity.setIcon(icon);
+		
+		JPACommentRepository repo = new JPACommentRepository();
+		
+		if(repo.addOrUpdate(commentEntity)) {
+			response.getWriter().write("true");
+		}else {
+			response.getWriter().write("false");
+		}		
 	}
 
 	private void search(HttpServletRequest request, HttpServletResponse response) throws IOException {
