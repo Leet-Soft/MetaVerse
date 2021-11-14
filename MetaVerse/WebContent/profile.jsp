@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="uni.fmi.masters.beans.UserBean" %>   
+<%@ page import="uni.fmi.masters.entities.UserEntity" %>   
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,10 +25,10 @@
 <body>
 
 <%
-	UserBean user = (UserBean)session.getAttribute("user");
+	UserEntity user = (UserEntity)session.getAttribute("user");
 
 	if(user == null){
-		user = new UserBean();
+		user = new UserEntity();
 	}
 %>
 

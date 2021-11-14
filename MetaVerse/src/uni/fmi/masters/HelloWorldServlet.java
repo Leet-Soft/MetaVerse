@@ -20,7 +20,8 @@ import javax.servlet.http.HttpSession;
 
 import org.json.JSONArray;
 
-import uni.fmi.masters.beans.UserBean;
+import uni.fmi.masters.entities.UserEntity;
+import uni.fmi.masters.repo.JPAUserRepository;
 
 /**
  * Servlet implementation class HelloWorldServlet
@@ -29,7 +30,7 @@ import uni.fmi.masters.beans.UserBean;
 public class HelloWorldServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
-	ArrayList<UserBean> friends = new ArrayList<>();
+	ArrayList<UserEntity> friends = new ArrayList<>();
 	
        
     /**
@@ -37,10 +38,10 @@ public class HelloWorldServlet extends HttpServlet {
      */
     public HelloWorldServlet() {
         super();
-        friends.add(new UserBean("Georgi", "goshohubaveca@abv.bg"));
-        friends.add(new UserBean("Mariika", "mimiskronata@abv.bg"));
-        friends.add(new UserBean("Ivancho", "ivankartofa@abv.bg"));
-        friends.add(new UserBean("Ivelina", "velkavelikata@abv.bg"));
+        friends.add(new UserEntity("Georgi", "goshohubaveca@abv.bg"));
+        friends.add(new UserEntity("Mariika", "mimiskronata@abv.bg"));
+        friends.add(new UserEntity("Ivancho", "ivankartofa@abv.bg"));
+        friends.add(new UserEntity("Ivelina", "velkavelikata@abv.bg"));
     }
 
 	/**
@@ -84,9 +85,9 @@ public class HelloWorldServlet extends HttpServlet {
 		
 		String phrase = request.getParameter("phrase");
 		
-		ArrayList<UserBean> results = new ArrayList<>();
+		ArrayList<UserEntity> results = new ArrayList<>();
 				
-		for(UserBean user : friends) {
+		for(UserEntity user : friends) {
 			if(user.getUsername().toLowerCase().contains(phrase.toLowerCase())
 					||
 				user.getEmail().toLowerCase().contains(phrase.toLowerCase())) {
@@ -134,9 +135,11 @@ public class HelloWorldServlet extends HttpServlet {
 			String email = request.getParameter("register-email");
 			String username = request.getParameter("register-user");
 			
-			UserBean user = new UserBean(username, password, email);
+			UserEntity user = new UserEntity(username, hashMe(password), email);
 			
-			if(registerUser(user)) {
+			JPAUserRepository repo = new JPAUserRepository();
+			
+			if(repo.registerUser(user)) {
 				HttpSession session = request.getSession();
 				session.setAttribute("user", user);
 				
@@ -153,7 +156,7 @@ public class HelloWorldServlet extends HttpServlet {
 		
 	}
 
-	private boolean registerUser(UserBean user) {
+	private boolean registerUser(UserEntity user) {
 		//отваряне на конекция
 		Connection con = null;
 		
@@ -239,8 +242,14 @@ public class HelloWorldServlet extends HttpServlet {
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
 		
-		if(loginUser(username, password)) {
-			response.sendRedirect("home.jsp");
+		JPAUserRepository repo = new JPAUserRepository();
+		
+		UserEntity user = repo.loginUser(username, hashMe(password));
+		
+		if(user != null) {
+			request.getSession().setAttribute("user", user);
+			
+			response.sendRedirect("home.jsp");	
 		}else {
 			request.setAttribute("error", "Login not successfull");
 			RequestDispatcher dispatcher = request.getRequestDispatcher("error.jsp");			
